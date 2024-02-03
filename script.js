@@ -8,6 +8,8 @@ javascript:(function() {
    * @param {string} pageUrl - 取得するページURL
    */
   const get_pagedata = async (pageUrl) => {
+    // カウントの更新
+    update_counter();
     // ページ情報の取得
     const result = await fetch(pageUrl);
     const text = await result.text();
@@ -21,12 +23,12 @@ javascript:(function() {
       urlList[pageCounter].title = doc.title;
       // ページ内にあるリンクURLをページリストに追加
       get_linklist(doc);
-      console.log('URL:', pageUrl, 'TITLE:', doc.title, 'STATUS:', result.status);
+      console.log('URL:', pageUrl, 'COUNT:', (pageCounter+1)+'/'+urlList.length, 'TITLE:', doc.title, 'STATUS:', result.status);
     // ページ情報取得失敗時
     } else {
       // ページリスト内のステータス更新
       urlList[pageCounter].status = result.status;
-      console.log('URL:', pageUrl, 'STATUS:', result.status);
+      console.log('URL:', pageUrl, 'COUNT:', (pageCounter+1)+'/'+urlList.length, 'STATUS:', result.status);
     }
     // ページ番号の更新
     pageCounter++;
@@ -58,6 +60,8 @@ javascript:(function() {
           url: link,
           status: ''
         });
+        // カウントの更新
+        update_counter();
       }
     }
   };
@@ -114,6 +118,44 @@ javascript:(function() {
   };
 
   /**
+   * カウントの更新
+   */
+  const update_counter = () => {
+    const current = document.getElementById('pagelist-generator-counter-current');
+    const total = document.getElementById('pagelist-generator-counter-total');
+    current.innerText = pageCounter + 1;
+    total.innerText = urlList.length;
+  };
+
+  /**
+   * 操作バーの表示
+   */
+  const generate_controller = () => {
+    const bar = document.createElement('div');
+    const barStyle = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: black;
+    `;
+    bar.setAttribute('style', barStyle);
+    const counterStyle = `
+      color: white;
+      padding: 10px;
+    `;
+    const counter = `
+      <div style="${counterStyle}">
+        <span id="pagelist-generator-counter-current">0</span>
+        <span>/</span>
+        <span id="pagelist-generator-counter-total">0</span>
+      </div>
+    `;
+    bar.innerHTML = counter;
+    document.body.appendChild(bar);
+  };
+
+  /**
    * 最終結果の表示
    */
   const generate_result = () => {
@@ -137,5 +179,6 @@ javascript:(function() {
     url: adjust_url(location.href),
     status: ''
   });
+  generate_controller();
   get_pagedata(urlList[pageCounter]['url']);
 })()
